@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="f4f447db-41c6-4f26-bf23-341f01d23e3c" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="9402ee4d-e21a-4ddf-aabb-7079d525f813" >
+		<salesforce:basic-connection username="somy2889@gmail.com" password="Somy@1994" securityToken="SwaH73fh5Q6IYXWTzZQTNpDg1" url="https://login.salesforce.com/services/Soap/u/60" />
+	</salesforce:sfdc-config>
+	<flow name="queryFlow" doc:id="90f30a2e-af8d-41bb-a45f-4ee9e0ea8447" >
+		<http:listener doc:name="Listener" doc:id="e139038c-a9fb-4836-b97a-10176a80d231" config-ref="HTTP_Listener_config" path="/query"/>
+		<logger level="INFO" doc:name="Logger" doc:id="223768d5-9405-4a01-877d-1b56a2292a82" message="#[payload]"/>
+		<salesforce:query doc:id="8894b8a4-f3b1-48cf-aa2e-97c5cb63df7a" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query ><![CDATA[select Id from Account where Phone=':phone']]></salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[output application/java
+---
+{
+	phone : attributes.queryParams.phone
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<ee:transform doc:name="Transform Message" doc:id="f568cb48-6d12-4c4c-8ad9-6c9e1e02e110" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="66a8fad9-d857-4a92-9980-10245d8c4f16" message="#[payload]"/>
+	</flow>
+</mule>
